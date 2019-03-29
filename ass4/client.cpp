@@ -1,4 +1,4 @@
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <fstream>
-#include<unistd.h> 
+#include <unistd.h> 
 
 using namespace std;
 #define BACKLOG 5
@@ -15,7 +15,8 @@ using namespace std;
 string getFileContents (ifstream&);
 
 char ip[INET6_ADDRSTRLEN];
-int len;
+int len=1;
+char new_msg[SIZE],buf[SIZE];
 
 class sock{
 public:
@@ -88,12 +89,37 @@ public:
 	
 };
 
+void sender(sock a)
+{
+	while(1){
+	cout << "< ";
+	cin >> new_msg;
+
+	if(strcmp(new_msg,"`")==0)
+		break;
+	
+	a.sock_send(new_msg);
+	
+	}
+}
+
+void receiver(sock a)
+{
+	while(1){
+	len = a.sock_recv(buf);
+	if(len==0)
+		{cout << "Connection Lost\n";
+			exit(0);}
+	cout << ip << " > " << buf <<endl; 
+	
+	}
+
+}
 
 int main()
 {
 	
 	char port[5];
-	char new_msg[100],buf[100];
 	string msg;
 	ifstream Reader ("k.txt");
 	string Art = getFileContents (Reader);
@@ -110,12 +136,10 @@ int main()
 	a.sock_connect();
 	cout << "Connection Established with : " << ip <<endl <<endl;
 
-	cout << "Enter your message : \n";
-	cin >> new_msg;
-	// cout << new_msg;
-	a.sock_send(new_msg);
-	a.sock_recv(buf);
-	cout << ip << " says back : " << buf <<endl; 
+	thread s(sender,a),r(receiver,a);
+	s.join();
+	r.join();
+	
 	a.sock_close();
 	return 0;
 }
